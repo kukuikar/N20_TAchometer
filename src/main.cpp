@@ -1,18 +1,26 @@
 #include <Arduino.h>
+unsigned long lastflash;
+int RPM;
 
-// put function declarations here:
-int myFunction(int, int);
-
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+void sens() 
+{
+  RPM = 60 / ((float)(micros() - lastflash) / 1000000); // расчет
+  lastflash = micros();                                 // запомнить время последнего оборота
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void setup() 
+{
+	Serial.begin(9600);  //открыть порт
+  pinMode(2, INPUT_PULLUP);   //2 пин как вход
+	attachInterrupt(0,sens,FALLING); //подключить прерывание на 2 пин при понижении сигнала
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop() 
+{
+  if ((micros() - lastflash) > 1000000)
+  {          // если сигнала нет больше секунды
+    RPM = 0; // считаем что RPM 0
+  }
+  Serial.println(RPM); // вывод в порт
+  delay(50);           // задержка для стабильности
 }
